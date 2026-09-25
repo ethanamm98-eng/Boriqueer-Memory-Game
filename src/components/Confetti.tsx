@@ -1,0 +1,2 @@
+const colors=["#ed168c","#ff7b22","#f0c80f","#16a873","#287bd1","#8a42c2"];
+export default function Confetti(){return <div className="confetti" aria-hidden="true">{Array.from({length:70},(_,index)=><i key={index} style={{left:`${(index*37)%100}%`,background:colors[index%colors.length],animationDelay:`${(index%14)*.08}s`,animationDuration:`${2.5+(index%8)*.18}s`,transform:`rotate(${index*29}deg)`}}/>)}</div>}
