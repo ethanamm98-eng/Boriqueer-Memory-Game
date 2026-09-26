@@ -50,12 +50,16 @@ The in-game Sound settings panel controls music and effects independently, inclu
 
 The online mode includes email/password accounts, player profiles and stats, private six-character room codes, ready states, live presence, synchronized cards, database-authoritative turns and scoring, and realtime room notifications.
 
+Private-room lobbies also include branded Resend email invitations. Invitations contain the sender's display name, the six-character room code, and a complete join link. Native sharing and SMS remain available as fallbacks.
+
 1. Create a Supabase project.
 2. Run `supabase/schema.sql` in the Supabase SQL Editor.
 3. Copy `.env.example` to `.env` and add your public project URL and anon key.
 4. Run `npm install` and `npm run dev`.
 
 See `supabase/SETUP.md` for the full setup checklist. Never place a service-role key in the frontend.
+
+The Resend API key is stored only as a Supabase Edge Function secret. Deploy `supabase/functions/send-room-invite` after configuring the secrets described in `supabase/SETUP.md`. Supabase Auth confirmation and recovery messages can use Resend through the custom SMTP settings documented there.
 
 For an existing project, run `supabase/upgrade_card_categories.sql` to add category-aware private rooms, then apply any other upgrade files you have not previously installed.
 

@@ -3806,6 +3806,7 @@ svg {
 }
 .invite-players {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -3816,9 +3817,11 @@ svg {
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 8px 24px rgba(55, 35, 65, 0.07);
 }
-.invite-players > div:first-child {
+.invite-summary {
   display: flex;
   flex-direction: column;
+  min-width: 190px;
+  flex: 1;
 }
 .invite-players strong {
   color: #49394f;
@@ -3856,10 +3859,122 @@ svg {
   border-color: transparent;
   background: linear-gradient(110deg, #ed168c, #a538aa);
 }
+.invite-actions .email-toggle.is-active {
+  color: #fff;
+  border-color: #a538aa;
+  background: #a538aa;
+}
 .invite-actions svg {
   width: 14px;
   height: 14px;
 }
+.invite-email-form {
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px solid #eee4ec;
+  animation: invite-form-in 0.22s ease both;
+}
+.invite-email-form > label {
+  display: block;
+  margin-bottom: 7px;
+  color: #49394f;
+  font-size: 0.67rem;
+  font-weight: 900;
+}
+.invite-email-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.invite-email-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.invite-email-field > svg {
+  position: absolute;
+  left: 13px;
+  width: 16px;
+  height: 16px;
+  color: #a538aa;
+  pointer-events: none;
+}
+.invite-email-field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #e2d4df;
+  border-radius: 12px;
+  outline: none;
+  color: #49394f;
+  background: #fffafd;
+  font: inherit;
+  font-size: 0.72rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.invite-email-field input:focus {
+  border-color: #ed168c;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(237, 22, 140, 0.1);
+}
+.send-email-invite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 105px;
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(110deg, #ed168c, #a538aa);
+  box-shadow: 0 8px 18px rgba(165, 56, 170, 0.2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+.send-email-invite:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.send-email-invite svg {
+  width: 15px;
+  height: 15px;
+}
+.send-email-invite:disabled svg {
+  animation: invite-spin 0.85s linear infinite;
+}
+.invite-email-message {
+  margin: 9px 0 0;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+.invite-email-message.is-error {
+  color: #a51d37;
+  background: #fff0f3;
+  border: 1px solid #f4c4cd;
+}
+.invite-email-message.is-success {
+  color: #176c4c;
+  background: #ecfbf4;
+  border: 1px solid #bcebd7;
+}
+.invite-email-note {
+  display: block;
+  margin-top: 8px;
+  color: #918394;
+  font-size: 0.59rem;
+  line-height: 1.5;
+}
+@keyframes invite-form-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes invite-spin { to { transform: rotate(360deg); } }
 @media (max-width: 760px) {
   .deck-zoom-controls {
     position: sticky;
@@ -3943,6 +4058,12 @@ svg {
   .invite-actions a,
   .invite-actions button {
     padding-inline: 5px;
+  }
+  .invite-email-row {
+    grid-template-columns: 1fr;
+  }
+  .send-email-invite {
+    width: 100%;
   }
 }
 

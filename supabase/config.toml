@@ -1,0 +1,4 @@
+[functions.send-room-invite]
+# Authentication is verified inside the function. This also permits browser
+# CORS preflight requests to reach the handler.
+verify_jwt = false

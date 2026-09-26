@@ -18,10 +18,10 @@ export default function AppFooter() {
 
         <nav className="footer-contact" aria-label={spanish ? "Contacto del creador" : "Creator contact"}>
           <a href="mailto:sexed.mitchell@gmail.com"><Icon name="mail" /> sexed.mitchell@gmail.com</a>
-          <a href="https://instagram.com/sexkul.pr" target="_blank" rel="noreferrer"><Icon name="instagram" /> @sexkúl.pr</a>
+          <a href="https://instagram.com/sexkul.mr" target="_blank" rel="noreferrer"><Icon name="instagram" /> @sexkúl.mr</a>
         </nav>
 
-        <a className="footer-studio" href="https://google.com" target="_blank" rel="noreferrer">
+        <a className="footer-studio" href="https://ethan-market.com" target="_blank" rel="noreferrer">
           <span>{spanish ? "Sitio web por" : "Website by"}</span>
           <strong>EA Market <Icon name="external" /></strong>
         </a>

@@ -131,9 +131,8 @@ export default function HomeScreen({
           </div>
         </section>
         <section
-          className={`setup-section wizard-section ${
-            mobileStep === 1 ? "is-mobile-active" : ""
-          }`}
+          className={`setup-section wizard-section ${mobileStep === 1 ? "is-mobile-active" : ""
+            }`}
         >
           <div className="section-heading">
             <div>
@@ -149,9 +148,8 @@ export default function HomeScreen({
                 <button
                   key={mode.id}
                   type="button"
-                  className={`mode-card accent-${mode.accent} ${
-                    active ? "is-selected" : ""
-                  }`}
+                  className={`mode-card accent-${mode.accent} ${active ? "is-selected" : ""
+                    }`}
                   onClick={() => update("mode", mode.id as GameModeId)}
                   aria-pressed={active}
                 >
@@ -174,9 +172,8 @@ export default function HomeScreen({
           {nav(1)}
         </section>
         <section
-          className={`category-section setup-section wizard-section ${
-            mobileStep === 2 ? "is-mobile-active" : ""
-          }`}
+          className={`category-section setup-section wizard-section ${mobileStep === 2 ? "is-mobile-active" : ""
+            }`}
         >
           <div className="section-heading">
             <div><span className="step-number">02</span><h2>{es ? "Elige una o más categorías" : "Choose one or more categories"}</h2></div>
@@ -194,13 +191,11 @@ export default function HomeScreen({
               </button>;
             })}
           </div>
-          <div className="automatic-board-summary"><Icon name="cards" /><span><small>{es ? "Tamaño automático del tablero" : "Automatic board size"}</small><strong>{config.pairCount} {t("pairs")} · {config.pairCount * 2} {t("cards")}</strong></span></div>
           {nav(2)}
         </section>
         <section
-          className={`play-type-panel wizard-section ${
-            mobileStep === 3 ? "is-mobile-active" : ""
-          }`}
+          className={`play-type-panel wizard-section ${mobileStep === 3 ? "is-mobile-active" : ""
+            }`}
         >
           <div className="section-heading compact">
             <div>
@@ -246,9 +241,8 @@ export default function HomeScreen({
         </section>
         {playType === "local" ? (
           <section
-            className={`bot-setup-panel wizard-section ${
-              mobileStep === 4 ? "is-mobile-active" : ""
-            }`}
+            className={`bot-setup-panel wizard-section ${mobileStep === 4 ? "is-mobile-active" : ""
+              }`}
           >
             <div className="section-heading compact">
               <div>
@@ -295,8 +289,8 @@ export default function HomeScreen({
                               level === "easy"
                                 ? "leaf"
                                 : level === "medium"
-                                ? "zap"
-                                : "flame"
+                                  ? "zap"
+                                  : "flame"
                             }
                           />
                         </span>
@@ -305,8 +299,8 @@ export default function HomeScreen({
                           {level === "easy"
                             ? t("mostlyRandom")
                             : level === "medium"
-                            ? t("remembersSome")
-                            : t("sharpMemory")}
+                              ? t("remembersSome")
+                              : t("sharpMemory")}
                         </small>
                       </button>
                     )
@@ -318,9 +312,8 @@ export default function HomeScreen({
           </section>
         ) : (
           <section
-            className={`online-opponents-panel wizard-section ${
-              mobileStep === 4 ? "is-mobile-active" : ""
-            }`}
+            className={`online-opponents-panel wizard-section ${mobileStep === 4 ? "is-mobile-active" : ""
+              }`}
           >
             <div className="section-heading compact">
               <div>
