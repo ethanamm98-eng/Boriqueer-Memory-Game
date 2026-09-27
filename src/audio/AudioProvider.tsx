@@ -35,6 +35,7 @@ type AudioContextValue = {
   setMusicVolume: (volume: number) => void;
   setEffectsVolume: (volume: number) => void;
   playEffect: (effect: SoundEffect) => void;
+  stopCelebration: () => void;
   startMusic: () => void;
 };
 
@@ -76,6 +77,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const settingsRef = useRef(settings);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const effectsRef = useRef<Partial<Record<SoundEffect, HTMLAudioElement>>>({});
+  const celebrationSoundsRef = useRef<Set<HTMLAudioElement>>(new Set());
   const musicStartedRef = useRef(false);
 
   useEffect(() => {
@@ -99,6 +101,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     return () => {
       music.pause();
       music.src = "";
+      celebrationSoundsRef.current.forEach((sound) => {
+        sound.pause();
+        sound.currentTime = 0;
+      });
+      celebrationSoundsRef.current.clear();
       effectsRef.current = {};
     };
   }, []);
@@ -149,7 +156,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     const sound = source.cloneNode(true) as HTMLAudioElement;
     sound.volume = current.effectsVolume;
+    if (effect === "cheer" || effect === "clap") {
+      celebrationSoundsRef.current.add(sound);
+      sound.addEventListener("ended", () => celebrationSoundsRef.current.delete(sound), { once: true });
+    }
     void sound.play().catch(() => undefined);
+  }, []);
+
+  const stopCelebration = useCallback(() => {
+    celebrationSoundsRef.current.forEach((sound) => {
+      sound.pause();
+      sound.currentTime = 0;
+    });
+    celebrationSoundsRef.current.clear();
   }, []);
 
   useEffect(() => {
@@ -173,8 +192,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setMusicVolume: (volume) => setSettings((current) => ({ ...current, musicVolume: volume })),
     setEffectsVolume: (volume) => setSettings((current) => ({ ...current, effectsVolume: volume })),
     playEffect,
+    stopCelebration,
     startMusic,
-  }), [playEffect, settings, startMusic]);
+  }), [playEffect, settings, startMusic, stopCelebration]);
 
   return <AudioContext.Provider value={value}>{children}</AudioContext.Provider>;
 }

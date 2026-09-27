@@ -31,6 +31,7 @@ export default function OnlineHub({ config, initialCode = "", onBack, onEnterRoo
   const [code, setCode] = useState(initialCode.slice(0, 6));
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState("");
+  const hasInvitation = initialCode.trim().length > 0;
 
   async function createRoom() {
     if (config.categories.length === 0) {
@@ -73,7 +74,7 @@ export default function OnlineHub({ config, initialCode = "", onBack, onEnterRoo
         ) : (
           <>
             <div className="online-welcome"><span className="online-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile?.display_name || user.email || "P").charAt(0).toUpperCase()}</span><div><small>{t("playingAs")}</small><strong>{profile?.display_name || user.email}</strong></div><span className="live-pill"><i /> {t("online")}</span></div>
-            <div className="online-choice-grid">
+            <div className={`online-choice-grid${hasInvitation ? " has-invitation" : ""}`}>
               <section className="online-choice-card create-card">
                 <span className="choice-icon"><Icon name="plus" /></span><small>{t("hostGame")}</small><h2>{t("createRoom")}</h2>
                 <p>{t("createRoomHelp")}</p>
@@ -92,7 +93,8 @@ export default function OnlineHub({ config, initialCode = "", onBack, onEnterRoo
               <section className="online-choice-card join-card">
                 <span className="choice-icon"><Icon name="arrowRight" /></span><small>{t("invitation")}</small><h2>{t("joinRoom")}</h2>
                 <p>{t("joinHelp")}</p>
-                <label className="room-code-field">{t("roomCode")}<input value={code} onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} placeholder="ABC123" maxLength={6} autoCapitalize="characters" /></label>
+                {hasInvitation && <div className="invitation-code-notice"><Icon name="mail" /><span>{language === "es" ? "Código completado desde tu invitación" : "Code filled from your invitation"}</span></div>}
+                <label className="room-code-field">{t("roomCode")}<input className={hasInvitation ? "is-invitation-prefilled" : ""} value={code} onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} placeholder="ABC123" maxLength={6} autoCapitalize="characters" /></label>
                 <button type="button" className="online-secondary" onClick={joinRoom} disabled={code.length !== 6 || Boolean(busy)}>{busy === "join" ? t("joining") : t("joinGame")}</button>
               </section>
             </div>

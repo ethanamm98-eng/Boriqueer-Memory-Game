@@ -454,8 +454,9 @@ h1 {
   top: 6%;
   display: grid;
   place-items: center;
-  width: 22%;
-  aspect-ratio: 1;
+  width: clamp(18px, 22%, 30px);
+  height: clamp(18px, 22%, 30px);
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   color: #fff;
   background: #41c79b;
@@ -833,6 +834,19 @@ h1 {
 .memory-card:not(.is-flipped):hover .card-back {
   box-shadow: 0 0 0 2px rgba(237, 22, 140, 0.42),
     0 0 28px rgba(237, 22, 140, 0.46), 0 17px 32px rgba(90, 31, 90, 0.24);
+}
+.card-grid.is-endgame-hint .memory-card:not(.is-flipped):not(.is-matched) {
+  animation: endgame-card-nudge 2.4s ease-in-out infinite;
+  transform-origin: 50% 88%;
+}
+.card-grid.is-endgame-hint .memory-card:nth-child(2n):not(.is-flipped):not(.is-matched) { animation-delay: .12s; }
+.card-grid.is-endgame-hint .memory-card:nth-child(3n):not(.is-flipped):not(.is-matched) { animation-delay: .24s; }
+@keyframes endgame-card-nudge {
+  0%, 12%, 24%, 100% { transform: translateX(0) rotate(0); }
+  5% { transform: translateX(-2px) rotate(-.65deg); }
+  10% { transform: translateX(2px) rotate(.65deg); }
+  17% { transform: translateX(-1.5px) rotate(-.45deg); }
+  22% { transform: translateX(1.5px) rotate(.45deg); }
 }
 .memory-card.is-flipped .card-front {
   box-shadow: 0 0 0 2px rgba(40, 190, 200, 0.28),
@@ -1520,6 +1534,12 @@ h1 {
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
+.online-choice-grid.has-invitation .join-card {
+  order: -1;
+  border-color: rgba(58, 177, 195, .48);
+  background: linear-gradient(145deg, rgba(240, 253, 255, .96), rgba(250, 246, 255, .94));
+  box-shadow: 0 18px 46px rgba(47, 137, 166, .14);
+}
 .online-choice-card {
   position: relative;
   min-height: 365px;
@@ -1623,6 +1643,31 @@ h1 {
   font: 900 1.5rem/1 monospace;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+.room-code-field input.is-invitation-prefilled {
+  border-color: #52bdc8;
+  color: #315aa7;
+  background: linear-gradient(135deg, #e9fbfc, #f3f0ff);
+  box-shadow: 0 0 0 4px rgba(65, 178, 194, .12), inset 0 1px 0 rgba(255, 255, 255, .85);
+  animation: invitation-code-ready .55s cubic-bezier(.2, .8, .2, 1) both;
+}
+.invitation-code-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-top: 13px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #287584;
+  background: rgba(210, 248, 250, .78);
+  font-size: .62rem;
+  font-weight: 900;
+}
+.invitation-code-notice svg { width: 14px; height: 14px; }
+@keyframes invitation-code-ready {
+  from { opacity: .55; transform: translateY(4px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .online-error,
 .room-toast {
@@ -1994,6 +2039,10 @@ h1 {
     transition-duration: 0.01ms;
   }
   .memory-card.is-matched .card-inner {
+    animation: none;
+  }
+  .card-grid.is-endgame-hint .memory-card:not(.is-flipped):not(.is-matched),
+  .room-code-field input.is-invitation-prefilled {
     animation: none;
   }
   .memory-card.is-remote-reveal,
@@ -2720,8 +2769,13 @@ svg {
   height: 13px;
 }
 .match-mark svg {
-  width: 18px;
-  height: 18px;
+  display: block;
+  width: 58%;
+  height: 58%;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+  flex: none;
 }
 .trophy svg {
   width: 34px;

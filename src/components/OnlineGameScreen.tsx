@@ -23,7 +23,7 @@ function formatTime(seconds: number) {
 export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenProps) {
   const { user, refreshProfile } = useAuth();
   const { language, t } = useLanguage();
-  const { playEffect, startMusic } = useAudio();
+  const { playEffect, startMusic, stopCelebration } = useAudio();
   const { room, players, events, onlineUserIds, loading, error, refresh } = useOnlineRoom(roomId);
   const [actionError, setActionError] = useState("");
   const [secondsRemaining, setSecondsRemaining] = useState(0);
@@ -36,6 +36,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   const [confirmQuit, setConfirmQuit] = useState(false);
   const [deckZoom, setDeckZoom] = useState(2);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showEndgameHint, setShowEndgameHint] = useState(false);
   const closeArtPreview = useCallback(() => { setArtPreview(null); setRemotePreviewContext(null); }, []);
   const previousMatchedRef = useRef(0);
   const previousStatusRef = useRef<string | null>(null);
@@ -55,6 +56,8 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   useEffect(() => {
     startMusic();
   }, [startMusic]);
+
+  useEffect(() => () => stopCelebration(), [stopCelebration]);
 
   useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (room?.status === "playing") { event.preventDefault(); event.returnValue = "" } }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn) }, [room?.status]);
 
@@ -184,6 +187,15 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     if (room?.mode === "clock" && room.status === "playing" && secondsRemaining > 0 && secondsRemaining <= 10) playEffect("warning");
   }, [playEffect, room?.mode, room?.status, secondsRemaining]);
 
+  useEffect(() => {
+    const remainingPairs = room ? room.pair_count - room.matched_pair_ids.length : 0;
+    const canHint = Boolean(room && remainingPairs === 3 && isMyTurn && room.flipped_indices.length < 2);
+    setShowEndgameHint(false);
+    if (!canHint) return;
+    const timer = window.setTimeout(() => setShowEndgameHint(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, [flippedPairKey, isMyTurn, room?.matched_pair_ids.length, room?.pair_count]);
+
   const winnerNames = useMemo(() => players.filter((player) => room?.winner_ids.includes(player.user_id)).map((player) => player.profile?.display_name || `Player ${player.seat_index + 1}`), [players, room?.winner_ids]);
 
   async function perform(action: () => Promise<void>) {
@@ -193,6 +205,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   }
 
   async function leave() {
+    stopCelebration();
     await perform(async () => { await leaveOnlineRoom(roomId); onLeave(); });
   }
 
@@ -229,7 +242,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   const displayTime = room.mode === "clock" ? secondsRemaining : elapsed;
 
   return (
-    <main className="game-shell online-game-shell">
+    <main className="game-shell online-game-shell" onPointerDown={stopCelebration}>
       <section className="game-wrap">
         <header className="game-header enhanced-game-header"><div className="game-title-row"><button className="home-button" type="button" onClick={() => setConfirmQuit(true)}><Icon name="arrowLeft" /></button><div><div className="eyebrow"><Icon name="wifi" /> {t("online").toUpperCase()} · {t("roomCode").toUpperCase()} {room.code}</div><h1>Boricuir Memory</h1></div></div><div className="game-actions"><span className={`active-mode-pill accent-${mode?.accent || "pink"}`}>{mode && <Icon name={mode.icon} />} {mode?.name}</span><span className="category-pill">{getCategoriesLabel(room.categories?.length ? room.categories : ALL_CATEGORY_IDS, language)}</span></div></header>
         <div className="score-strip enhanced-score-strip">
@@ -290,7 +303,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
         })}
         </div>
         <DeckZoomControls level={deckZoom} onChange={setDeckZoom} />
-        <div className={`card-grid zoomable-card-grid grid-${room.pair_count} ${remoteHighlights.length || remoteHistory.length ? "has-remote-reveal" : ""}`} style={{ "--mobile-card-width": `${MOBILE_CARD_WIDTHS[deckZoom]}px` } as CSSProperties}>{room.deck.map((matchId, index) => {
+        <div className={`card-grid zoomable-card-grid grid-${room.pair_count} ${showEndgameHint ? "is-endgame-hint" : ""} ${remoteHighlights.length || remoteHistory.length ? "has-remote-reveal" : ""}`} style={{ "--mobile-card-width": `${MOBILE_CARD_WIDTHS[deckZoom]}px` } as CSSProperties}>{room.deck.map((matchId, index) => {
           const shown = rushPreviewSeconds > 0 || room.flipped_indices.includes(index) || room.matched_pair_ids.includes(matchId) || remotePairHold.includes(index);
           const matched = room.matched_pair_ids.includes(matchId);
           const remotePickOrder = remoteHighlights.indexOf(index) + 1;
@@ -305,6 +318,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
               className={`memory-card ${shown ? "is-flipped" : ""} ${matched ? "is-matched" : ""} ${remotePickOrder ? "is-remote-reveal" : ""} ${isRecentRemotePick ? "is-remote-history" : ""} ${isHeldRemotePick ? "is-remote-pair-hold" : ""}`}
               disabled={!isMyTurn || shown || room.turn_state !== "ready" || rushPreviewSeconds > 0}
               onClick={() => {
+                setShowEndgameHint(false);
                 playEffect("flip");
                 setRemotePreviewContext(null);
                 setArtPreview(`/cards-v2/card-${matchId}.webp`);
@@ -338,7 +352,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
       {room.status === "finished" && !showLeaderboard && <div className="modal-backdrop"><Confetti /><section className="win-dialog"><div className="trophy"><Icon name="trophy" /></div>
         <span className="result-mode">{t("onlineComplete")}</span><h2>{winnerNames.length ? `${winnerNames.join(" & ")} ${t("wins")}` : t("gameOver")}</h2><p>{players.map((player) => `${player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`}: ${player.score}`).join(" · ")}</p><button type="button" className="play-again-button" onClick={leave}>{t("returnLobby")}</button></section></div>}
       <CardArtPreview image={artPreview} onClose={closeArtPreview} context={remotePreviewContext} remote={Boolean(remotePreviewContext)} />
-      <ConfirmDialog open={confirmQuit} onCancel={() => setConfirmQuit(false)} onConfirm={onLeave} />
+      <ConfirmDialog open={confirmQuit} onCancel={() => setConfirmQuit(false)} onConfirm={() => { stopCelebration(); onLeave(); }} />
     </main>
   );
 }

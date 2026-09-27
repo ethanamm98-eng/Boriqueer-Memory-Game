@@ -84,7 +84,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
       ? "/images/robot-hard.svg"
       : "/images/robot.svg";
   const mode = getGameModes(language).find((item) => item.id === config.mode)!;
-  const { playEffect } = useAudio();
+  const { playEffect, stopCelebration } = useAudio();
   const { recordLocalGame, profile } = useAuth();
   const totalPlayers = config.playerCount + config.botCount;
   const botMemoryRef = useRef<Map<number, Set<string>>>(new Map());
@@ -113,7 +113,14 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
   const [deckZoom, setDeckZoom] = useState(2);
   const [restarting, setRestarting] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showEndgameHint, setShowEndgameHint] = useState(false);
   const closeArtPreview = useCallback(() => setArtPreview(null), []);
+  const exitGame = useCallback(() => {
+    stopCelebration();
+    onHome();
+  }, [onHome, stopCelebration]);
+
+  useEffect(() => () => stopCelebration(), [stopCelebration]);
 
   const playerName = useCallback(
     (index: number) =>
@@ -158,6 +165,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
       resultRecordedRef.current = false;
       leaderboardRecordedRef.current = false;
       setShowLeaderboard(false);
+      setShowEndgameHint(false);
     },
     [config, totalPlayers]
   );
@@ -187,6 +195,17 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
     }, 1000);
     return () => window.clearInterval(timer);
   }, [previewActive]);
+
+  useEffect(() => {
+    const remainingPairs = config.pairCount - matched.length;
+    const isHumanTurn = currentPlayer < config.playerCount;
+    const canHint = remainingPairs === 3 && isHumanTurn && started && !locked && !previewActive && !result && flipped.length < 2;
+
+    setShowEndgameHint(false);
+    if (!canHint) return;
+    const timer = window.setTimeout(() => setShowEndgameHint(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, [config.pairCount, config.playerCount, currentPlayer, flipped, locked, matched.length, previewActive, result, started]);
 
   useEffect(() => {
     if (!started || result || previewActive) return;
@@ -300,6 +319,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
       flipped.length === 2
     )
       return;
+    setShowEndgameHint(false);
     if (!started) setStarted(true);
     playEffect("flip");
     rememberCard(card);
@@ -313,7 +333,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
     setLocked(true);
     const first = deck.find((item) => item.uid === next[0]);
     // Keep an opponent's completed pair visible long enough to register without
-    // making the next turn feel delayed. This is half of the previous 6.2s hold.
+    // making the next turn feel delayed.
     const pairRevealDuration = currentPlayer >= config.playerCount ? 2000 : undefined;
 
     if (first?.matchId === card.matchId) {
@@ -435,7 +455,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
   ]);
 
   return (
-    <main className="game-shell">
+    <main className="game-shell" onPointerDown={stopCelebration}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <section className="game-wrap" aria-label={`${mode.name} memory game`}>
@@ -623,7 +643,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
 
         <DeckZoomControls level={deckZoom} onChange={setDeckZoom} />
         <div
-          className={`card-grid zoomable-card-grid grid-${config.pairCount} ${
+          className={`card-grid zoomable-card-grid grid-${config.pairCount} ${showEndgameHint ? "is-endgame-hint" : ""} ${
             previewActive ? "is-previewing" : ""
           }`}
           style={
@@ -726,7 +746,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
               <button
                 type="button"
                 className="secondary-result-button"
-                onClick={onHome}
+                onClick={exitGame}
               >
                 {t("gameModes")}
               </button>
@@ -756,7 +776,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
       <ConfirmDialog
         open={confirmQuit}
         onCancel={() => setConfirmQuit(false)}
-        onConfirm={onHome}
+        onConfirm={exitGame}
       />
     </main>
   );
