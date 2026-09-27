@@ -78,6 +78,11 @@ function formatTime(totalSeconds: number) {
 
 export default function GameScreen({ config, onHome }: GameScreenProps) {
   const { language, t } = useLanguage();
+  const botImage = config.botDifficulty === "easy"
+    ? "/images/robot-easy.svg"
+    : config.botDifficulty === "hard"
+      ? "/images/robot-hard.svg"
+      : "/images/robot.svg";
   const mode = getGameModes(language).find((item) => item.id === config.mode)!;
   const { playEffect } = useAudio();
   const { recordLocalGame, profile } = useAuth();
@@ -307,6 +312,9 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
     setMoves((value) => value + 1);
     setLocked(true);
     const first = deck.find((item) => item.uid === next[0]);
+    // Keep an opponent's completed pair visible long enough to register without
+    // making the next turn feel delayed. This is half of the previous 6.2s hold.
+    const pairRevealDuration = currentPlayer >= config.playerCount ? 2000 : undefined;
 
     if (first?.matchId === card.matchId) {
       window.setTimeout(() => {
@@ -327,7 +335,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
         );
         setFlipped([]);
         setLocked(false);
-      }, 420);
+      }, pairRevealDuration ?? 420);
     } else {
       window.setTimeout(() => {
         playEffect("mismatch");
@@ -347,7 +355,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
           }
         }
         setLocked(false);
-      }, 850);
+      }, pairRevealDuration ?? 850);
     }
   }
 
@@ -544,7 +552,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
         {currentPlayer >= config.playerCount && !result && (
           <div className="bot-thinking-banner">
             <span>
-              <Icon name="sparkles" />
+              <img src={botImage} alt="" aria-hidden="true" />
             </span>
             <div>
               <strong>
@@ -580,7 +588,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
                     }`}
                   >
                     {index >= config.playerCount ? (
-                      <Icon name="sparkles" />
+                      <img src={botImage} alt="" aria-hidden="true" />
                     ) : (
                       index + 1
                     )}

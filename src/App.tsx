@@ -15,12 +15,12 @@ import { useAuth } from "./context/AuthContext";
 
 const DEFAULT_CONFIG: GameConfig = {
   mode: "classic",
-  pairCount: 80,
+  pairCount: 0,
   playerCount: 1,
   onlinePlayerCount: 2,
   botCount: 1,
   botDifficulty: "medium",
-  categories: ["general", "puerto-rico", "sexual-health", "identities"],
+  categories: [],
 };
 
 export default function App() {

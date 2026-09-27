@@ -29,13 +29,22 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [nowMs, setNowMs] = useState(Date.now());
   const [artPreview, setArtPreview] = useState<string | null>(null);
+  const [remotePreviewContext, setRemotePreviewContext] = useState<string | null>(null);
+  const [remoteHighlights, setRemoteHighlights] = useState<number[]>([]);
+  const [remoteHistory, setRemoteHistory] = useState<number[]>([]);
+  const [remotePairHold, setRemotePairHold] = useState<number[]>([]);
   const [confirmQuit, setConfirmQuit] = useState(false);
   const [deckZoom, setDeckZoom] = useState(2);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const closeArtPreview = useCallback(() => setArtPreview(null), []);
+  const closeArtPreview = useCallback(() => { setArtPreview(null); setRemotePreviewContext(null); }, []);
   const previousMatchedRef = useRef(0);
   const previousStatusRef = useRef<string | null>(null);
   const previousFlippedIndicesRef = useRef<number[]>([]);
+  const remoteHighlightTimerRef = useRef<number | null>(null);
+  const remoteHistoryTimerRef = useRef<number | null>(null);
+  const remotePairHoldTimerRef = useRef<number | null>(null);
+  const remoteHighlightsRef = useRef<number[]>([]);
+  const remotePreviewTimersRef = useRef<number[]>([]);
 
   const me = players.find((player) => player.user_id === user?.id);
   const currentPlayer = players.find((player) => player.seat_index === room?.current_player_index);
@@ -47,7 +56,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     startMusic();
   }, [startMusic]);
 
-  useEffect(() => { const warn=(event:BeforeUnloadEvent)=>{if(room?.status==="playing"){event.preventDefault();event.returnValue=""}};window.addEventListener("beforeunload",warn);return()=>window.removeEventListener("beforeunload",warn)},[room?.status]);
+  useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (room?.status === "playing") { event.preventDefault(); event.returnValue = "" } }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn) }, [room?.status]);
 
   useEffect(() => {
     if (room?.status !== "playing") return;
@@ -70,6 +79,13 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
 
   const flippedPairKey = room?.flipped_indices.join("-") ?? "";
 
+  useEffect(() => () => {
+    if (remoteHighlightTimerRef.current !== null) window.clearTimeout(remoteHighlightTimerRef.current);
+    if (remoteHistoryTimerRef.current !== null) window.clearTimeout(remoteHistoryTimerRef.current);
+    if (remotePairHoldTimerRef.current !== null) window.clearTimeout(remotePairHoldTimerRef.current);
+    remotePreviewTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+  }, []);
+
   useEffect(() => {
     if (!room) {
       previousFlippedIndicesRef.current = [];
@@ -86,9 +102,46 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     const latestIndex = newlyFlipped[newlyFlipped.length - 1];
     const matchId = room.deck[latestIndex];
     if (!matchId) return;
+    const playerName = currentPlayer?.profile?.display_name || t("player");
+
+    // A new remote flip always returns the spectator to the board immediately.
+    // This prevents a fast second pick from being hidden behind the first preview.
+    remotePreviewTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    remotePreviewTimersRef.current = [];
+    setArtPreview(null);
+    setRemotePreviewContext(null);
+
+    if (previous.length === 0 && remoteHighlightsRef.current.length > 0) {
+      setRemoteHistory((history) => Array.from(new Set([...history, ...remoteHighlightsRef.current])).filter((index) => index !== latestIndex).slice(-6));
+      if (remoteHistoryTimerRef.current !== null) window.clearTimeout(remoteHistoryTimerRef.current);
+      remoteHistoryTimerRef.current = window.setTimeout(() => setRemoteHistory([]), 10000);
+    }
+    const nextHighlights = previous.length === 0 ? [latestIndex] : Array.from(new Set([...remoteHighlightsRef.current, latestIndex])).slice(-2);
+    remoteHighlightsRef.current = nextHighlights;
+    setRemoteHighlights(nextHighlights);
+    if (remoteHighlightTimerRef.current !== null) window.clearTimeout(remoteHighlightTimerRef.current);
+    remoteHighlightTimerRef.current = window.setTimeout(() => {
+      remoteHighlightsRef.current = [];
+      setRemoteHighlights([]);
+    }, 10000);
     playEffect("flip");
-    setArtPreview(`/cards-v2/card-${matchId}.webp`);
-  }, [currentPlayer?.user_id, flippedPairKey, playEffect, room, user?.id]);
+
+    if (nextHighlights.length === 2) {
+      // Preserve both faces locally after the server resolves the pair. The
+      // online turn can continue while spectators still get a clear view.
+      setRemotePairHold(nextHighlights);
+      if (remotePairHoldTimerRef.current !== null) window.clearTimeout(remotePairHoldTimerRef.current);
+      remotePairHoldTimerRef.current = window.setTimeout(() => setRemotePairHold([]), 1000);
+    } else {
+      setRemotePairHold([]);
+      if (remotePairHoldTimerRef.current !== null) window.clearTimeout(remotePairHoldTimerRef.current);
+      const previewTimer = window.setTimeout(() => {
+        setRemotePreviewContext(language === "es" ? `${playerName} reveló esta carta` : `${playerName} revealed this card`);
+        setArtPreview(`/cards-v2/card-${matchId}.webp`);
+      }, 700);
+      remotePreviewTimersRef.current.push(previewTimer);
+    }
+  }, [currentPlayer?.profile?.display_name, currentPlayer?.user_id, flippedPairKey, language, playEffect, room, t, user?.id]);
 
   useEffect(() => {
     if (!room?.id || room.turn_state !== "resolving" || room.flipped_indices.length !== 2) return;
@@ -158,7 +211,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
             <div className="lobby-player-list">{Array.from({ length: room.max_players }, (_, index) => {
               const player = players.find((item) => item.seat_index === index);
               return player ? <div className="lobby-player" key={player.id}><span className="online-avatar">{player.profile?.avatar_url ? <img src={player.profile.avatar_url} alt="" /> : (player.profile?.display_name || "P").charAt(0)}</span><div><strong title={player.profile?.display_name || `${t("player")} ${index + 1}`}>{player.profile?.display_name || `${t("player")} ${index + 1}`}{player.user_id === room.host_id && <small> {t("host")}</small>}</strong><span>{onlineUserIds.includes(player.user_id) ? t("onlineNow") : t("connectingDots")}</span></div><b className={player.is_ready ? "is-ready" : ""}>{player.is_ready ? t("ready") : t("notReady")}</b></div>
-              : <div className="lobby-player empty-player" key={index}><span><Icon name="plus" /></span><p>{t("waitingForPlayer")} {index + 1}</p></div>;
+                : <div className="lobby-player empty-player" key={index}><span><Icon name="plus" /></span><p>{t("waitingForPlayer")} {index + 1}</p></div>;
             })}</div>
             <div className="lobby-actions">
               {me && user?.id !== room.host_id && <button type="button" className="online-secondary" onClick={() => perform(() => setPlayerReady(room.id, !me.is_ready))}>{me.is_ready ? t("notReady") : t("imReady")}</button>}
@@ -179,22 +232,112 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     <main className="game-shell online-game-shell">
       <section className="game-wrap">
         <header className="game-header enhanced-game-header"><div className="game-title-row"><button className="home-button" type="button" onClick={() => setConfirmQuit(true)}><Icon name="arrowLeft" /></button><div><div className="eyebrow"><Icon name="wifi" /> {t("online").toUpperCase()} · {t("roomCode").toUpperCase()} {room.code}</div><h1>Boricuir Memory</h1></div></div><div className="game-actions"><span className={`active-mode-pill accent-${mode?.accent || "pink"}`}>{mode && <Icon name={mode.icon} />} {mode?.name}</span><span className="category-pill">{getCategoriesLabel(room.categories?.length ? room.categories : ALL_CATEGORY_IDS, language)}</span></div></header>
-        <div className="score-strip enhanced-score-strip"><div className="score-item"><span>{t("matches")}</span><strong>{room.matched_pair_ids.length}<small> / {room.pair_count}</small></strong></div><div className="score-item"><span>{t("moves")}</span><strong>{room.moves}</strong></div><div className={`score-item ${room.mode === "clock" && secondsRemaining <= 10 ? "is-urgent" : ""}`}><span>{room.mode === "clock" ? t("timeLeft") : t("time")}</span><strong>{formatTime(displayTime)}</strong></div>{room.mode === "last-chance" && <div className="score-item special-stat"><span>{t("lives")}</span><strong className="lives-display">{Array.from({length:5},(_,i)=><Icon key={i} name="heart" className={i<room.lives?"is-filled":""}/>)}</strong></div>}<div className="progress-wrap"><div className="progress-label"><span>{t("progress")}</span><strong>{Math.round(room.matched_pair_ids.length / room.pair_count * 100)}%</strong></div><div className="progress-track"><div className="progress-fill" style={{ width: `${room.matched_pair_ids.length / room.pair_count * 100}%` }} /></div></div></div>
-        {rushPreviewSeconds > 0 && <div className="preview-banner"><span className="preview-count">{rushPreviewSeconds}</span><div><strong>{t("memorize")}</strong><small>{t("devicesBegin")}</small></div></div>}
-        <div className={`turn-banner ${isMyTurn && rushPreviewSeconds === 0 ? "is-mine" : ""}`}><span>{rushPreviewSeconds > 0 ? t("memoryPreview") : isMyTurn ? t("yourTurn") : `${currentPlayer?.profile?.display_name || t("player")} ${t("isPlaying")}`}</span><small>{rushPreviewSeconds > 0 ? t("previewEnds") : room.turn_state === "resolving" ? t("checkingPair") : isMyTurn ? t("chooseTwo") : t("liveUpdates")}</small></div>
-        <div className={`player-board players-${players.length}`}>{players.map((player) => { const playerName = player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`; return <div key={player.id} className={`player-card ${player.seat_index === room.current_player_index && room.status === "playing" ? "is-current" : ""}`}><div className="player-identity"><span className="player-avatar">{player.profile?.avatar_url ? <img src={player.profile.avatar_url} alt="" /> : playerName.charAt(0)}</span><div><span className="player-name" title={playerName}>{playerName}</span><span className="presence-label"><i className={onlineUserIds.includes(player.user_id) ? "online" : ""} />{onlineUserIds.includes(player.user_id) ? t("online") : t("away")}</span></div></div><strong className="player-score">{player.score}<small>{t("points")}</small></strong></div>;})}</div>
+        <div className="score-strip enhanced-score-strip">
+          <div className="score-item">
+            <span>{t("matches")}</span>
+            <strong>{room.matched_pair_ids.length}
+              <small> / {room.pair_count}</small>
+            </strong></div><div className="score-item">
+            <span>{t("moves")}</span><strong>{room.moves}
+
+            </strong>
+          </div>
+          <div className={`score-item ${room.mode === "clock" && secondsRemaining <= 10 ? "is-urgent" : ""}`}>
+            <span>{room.mode === "clock" ? t("timeLeft") : t("time")}
+            </span>
+            <strong>
+              {formatTime(displayTime)}
+            </strong>
+          </div>{room.mode === "last-chance" && <div className="score-item special-stat"><span>{t("lives")}</span>
+            <strong className="lives-display">
+              {Array.from({ length: 5 }, (_, i) =>
+                <Icon key={i} name="heart" className={i < room.lives ? "is-filled" : ""} />)}
+            </strong>
+          </div>}
+          <div className="progress-wrap">
+            <div className="progress-label">
+              <span>{t("progress")}</span>
+              <strong>{Math.round(room.matched_pair_ids.length / room.pair_count * 100)}%</strong></div><div className="progress-track"><div className="progress-fill" style={{ width: `${room.matched_pair_ids.length / room.pair_count * 100}%` }} /></div></div></div>
+        {rushPreviewSeconds > 0 && <div className="preview-banner">
+          <span className="preview-count">{rushPreviewSeconds}</span>
+          <div>
+            <strong>{t("memorize")}</strong>
+            <small>{t("devicesBegin")}</small>
+          </div>
+        </div>}
+        <div className={`turn-banner ${isMyTurn && rushPreviewSeconds === 0 ? "is-mine" : ""} ${!isMyTurn && rushPreviewSeconds === 0 ? "is-opponent" : ""} ${remoteHighlights.length ? "has-remote-action" : ""}`}><span>{rushPreviewSeconds > 0 ? t("memoryPreview") : isMyTurn ? t("yourTurn") : `${currentPlayer?.profile?.display_name || t("player")} ${t("isPlaying")}`}</span><small>{rushPreviewSeconds > 0 ? t("previewEnds") : remoteHighlights.length ? (language === "es" ? "Sus cartas están marcadas con un brillo numerado" : "Their cards are marked with a numbered glow") : room.turn_state === "resolving" ? t("checkingPair") : isMyTurn ? t("chooseTwo") : t("liveUpdates")}</small></div>
+        {(remoteHighlights.length > 0 || remoteHistory.length > 0) &&
+          <div className={`remote-reveal-notice ${remotePairHold.length === 2 ? "is-holding-pair" : ""}`} role="status"><span className="remote-reveal-icon"><Icon name="wifi" /></span><div><strong>{remotePairHold.length === 2 ? (language === "es" ? "Par del oponente visible" : "Opponent pair held open") : (language === "es" ? "Rastro de jugadas del oponente" : "Opponent pick trail")}</strong><small>{remotePairHold.length === 2 ? (language === "es" ? "Ambas cartas permanecerán abiertas y brillando por unos segundos." : "Both cards will remain face-up and glowing for a few seconds.") : (language === "es" ? "Azul brillante: selección actual. Dorado: selecciones recientes." : "Bright blue: current picks. Gold: recent picks from consecutive turns.")}</small></div><span className="remote-reveal-count">{remoteHighlights.length}/2</span></div>}
+        <div className={`player-board players-${players.length}`}>{players.map((player) => {
+          const playerName = player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`;
+          return <div key={player.id} className={`player-card ${player.seat_index === room.current_player_index && room.status === "playing" ? "is-current" : ""}`}>
+            <div className="player-identity">
+              <span className="player-avatar">
+                {player.profile?.avatar_url ? <img src={player.profile.avatar_url} alt="" /> : playerName.charAt(0)}
+              </span>
+              <div>
+                <span className="player-name" title={playerName}>{playerName}
+                </span>
+                <span className="presence-label">
+                  <i className={onlineUserIds.includes(player.user_id) ? "online" : ""} />{onlineUserIds.includes(player.user_id) ? t("online") : t("away")}
+                </span>
+              </div>
+            </div>
+            <strong className="player-score">{player.score}
+              <small>{t("points")}</small>
+            </strong>
+          </div>;
+        })}
+        </div>
         <DeckZoomControls level={deckZoom} onChange={setDeckZoom} />
-        <div className={`card-grid zoomable-card-grid grid-${room.pair_count}`} style={{ "--mobile-card-width": `${MOBILE_CARD_WIDTHS[deckZoom]}px` } as CSSProperties}>{room.deck.map((matchId, index) => {
-          const shown = rushPreviewSeconds > 0 || room.flipped_indices.includes(index) || room.matched_pair_ids.includes(matchId);
+        <div className={`card-grid zoomable-card-grid grid-${room.pair_count} ${remoteHighlights.length || remoteHistory.length ? "has-remote-reveal" : ""}`} style={{ "--mobile-card-width": `${MOBILE_CARD_WIDTHS[deckZoom]}px` } as CSSProperties}>{room.deck.map((matchId, index) => {
+          const shown = rushPreviewSeconds > 0 || room.flipped_indices.includes(index) || room.matched_pair_ids.includes(matchId) || remotePairHold.includes(index);
           const matched = room.matched_pair_ids.includes(matchId);
+          const remotePickOrder = remoteHighlights.indexOf(index) + 1;
+          const isRecentRemotePick = remotePickOrder === 0 && remoteHistory.includes(index);
+          const isHeldRemotePick = remotePairHold.includes(index);
           const cardCategory = getCardCategory(matchId);
-          return <button key={index} type="button" data-sound="custom" className={`memory-card ${shown ? "is-flipped" : ""} ${matched ? "is-matched" : ""}`} disabled={!isMyTurn || shown || room.turn_state !== "ready" || rushPreviewSeconds > 0} onClick={() => { playEffect("flip"); setArtPreview(`/cards-v2/card-${matchId}.webp`); void perform(() => flipOnlineCard(room.id, index)); }}><span className="card-inner"><span className="card-face card-back"><img src={cardCategory.backImage} alt="" /></span><span className="card-face card-front"><img src={`/cards-v2/card-${matchId}.webp`} alt="" />{matched && <span className="match-mark"><Icon name="check" /></span>}</span></span></button>;
+          return (
+            <button
+              key={index}
+              type="button"
+              data-sound="custom"
+              className={`memory-card ${shown ? "is-flipped" : ""} ${matched ? "is-matched" : ""} ${remotePickOrder ? "is-remote-reveal" : ""} ${isRecentRemotePick ? "is-remote-history" : ""} ${isHeldRemotePick ? "is-remote-pair-hold" : ""}`}
+              disabled={!isMyTurn || shown || room.turn_state !== "ready" || rushPreviewSeconds > 0}
+              onClick={() => {
+                playEffect("flip");
+                setRemotePreviewContext(null);
+                setArtPreview(`/cards-v2/card-${matchId}.webp`);
+                void perform(() => flipOnlineCard(room.id, index));
+              }}
+            >
+              {remotePickOrder > 0 &&
+                <span className="remote-pick-badge">
+                  <Icon name="wifi" />{remotePickOrder}
+                </span>
+              }
+              {isRecentRemotePick && <span className="remote-history-badge">
+                <Icon name="clock" />
+              </span>}<span className="card-inner">
+                <span className="card-face card-back">
+                  <img src={cardCategory.backImage} alt="" />
+                </span>
+                <span className="card-face card-front">
+                  <img src={`/cards-v2/card-${matchId}.webp`} alt="" />
+                  {matched && <span className="match-mark">
+                    <Icon name="check" />
+                  </span>}
+                </span>
+              </span>
+            </button>
+          )
         })}</div>
         {actionError && <div className="online-error" role="alert">{actionError}</div>}
       </section>
       {room.status === "finished" && showLeaderboard && <LeaderboardOverlay mode={room.mode} modeName={mode?.name || room.mode} fallbackEntries={players.map((player) => ({ displayName: player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`, avatarUrl: player.profile?.avatar_url || null, score: player.score, pairs: player.score, moves: room.moves, durationSeconds: elapsed }))} onDone={() => setShowLeaderboard(false)} />}
-      {room.status === "finished" && !showLeaderboard && <div className="modal-backdrop"><Confetti /><section className="win-dialog"><div className="trophy"><Icon name="trophy" /></div><span className="result-mode">{t("onlineComplete")}</span><h2>{winnerNames.length ? `${winnerNames.join(" & ")} ${t("wins")}` : t("gameOver")}</h2><p>{players.map((player) => `${player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`}: ${player.score}`).join(" · ")}</p><button type="button" className="play-again-button" onClick={leave}>{t("returnLobby")}</button></section></div>}
-      <CardArtPreview image={artPreview} onClose={closeArtPreview} />
+      {room.status === "finished" && !showLeaderboard && <div className="modal-backdrop"><Confetti /><section className="win-dialog"><div className="trophy"><Icon name="trophy" /></div>
+        <span className="result-mode">{t("onlineComplete")}</span><h2>{winnerNames.length ? `${winnerNames.join(" & ")} ${t("wins")}` : t("gameOver")}</h2><p>{players.map((player) => `${player.profile?.display_name || `${t("player")} ${player.seat_index + 1}`}: ${player.score}`).join(" · ")}</p><button type="button" className="play-again-button" onClick={leave}>{t("returnLobby")}</button></section></div>}
+      <CardArtPreview image={artPreview} onClose={closeArtPreview} context={remotePreviewContext} remote={Boolean(remotePreviewContext)} />
       <ConfirmDialog open={confirmQuit} onCancel={() => setConfirmQuit(false)} onConfirm={onLeave} />
     </main>
   );

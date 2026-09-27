@@ -33,6 +33,10 @@ export default function OnlineHub({ config, initialCode = "", onBack, onEnterRoo
   const [error, setError] = useState("");
 
   async function createRoom() {
+    if (config.categories.length === 0) {
+      setError(language === "es" ? "Selecciona al menos una categoría en el inicio antes de crear una sala." : "Select at least one category on the home screen before creating a room.");
+      return;
+    }
     setBusy("create");
     setError("");
     try { onEnterRoom(await createOnlineRoom({ ...config, playerCount: config.onlinePlayerCount })); }
@@ -73,8 +77,17 @@ export default function OnlineHub({ config, initialCode = "", onBack, onEnterRoo
               <section className="online-choice-card create-card">
                 <span className="choice-icon"><Icon name="plus" /></span><small>{t("hostGame")}</small><h2>{t("createRoom")}</h2>
                 <p>{t("createRoomHelp")}</p>
-                <div className="room-config-summary"><span>{config.onlinePlayerCount} {t("players")}</span><span>{config.pairCount} {t("pairs")}</span><span>{config.mode}</span><span>{getCategoriesLabel(config.categories, language)}</span></div>
-                <button type="button" className="online-primary" onClick={createRoom} disabled={Boolean(busy)}>{busy === "create" ? t("creating") : t("createPrivateRoom")}</button>
+                <div className="room-config-summary">
+                  <span>{config.onlinePlayerCount} {t("players")}
+                  </span>
+                  <span>
+                    {config.pairCount} {t("pairs")}
+                  </span>
+                  <span>{config.mode}</span>
+                  <span>{getCategoriesLabel(config.categories, language)}</span></div>
+                <button type="button" className="online-primary" onClick={createRoom} disabled={Boolean(busy) || config.categories.length === 0}>
+                  {busy === "create" ? t("creating") : t("createPrivateRoom")}
+                </button>
               </section>
               <section className="online-choice-card join-card">
                 <span className="choice-icon"><Icon name="arrowRight" /></span><small>{t("invitation")}</small><h2>{t("joinRoom")}</h2>

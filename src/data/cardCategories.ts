@@ -60,6 +60,7 @@ export function getSelectedPairCount(categories: readonly PlayableCardCategoryId
 }
 
 export function getCategoriesLabel(categories: readonly PlayableCardCategoryId[], language: Language) {
+  if (categories.length === 0) return language === "es" ? "Ninguna seleccionada" : "None selected";
   if (categories.length === PLAYABLE_CATEGORIES.length) return getCategoryLabel("all", language);
   if (categories.length === 1) return getCategoryLabel(categories[0], language);
   return language === "es" ? `${categories.length} categorías` : `${categories.length} categories`;

@@ -5,6 +5,7 @@ import { ALL_CATEGORY_IDS, CARD_CATEGORIES, getCategoriesLabel, getCategoryLabel
 import { useAudio } from "../audio/AudioProvider";
 import { useLanguage } from "../context/LanguageContext";
 import Icon from "./Icon";
+import CategoryArtwork from "./CategoryArtwork";
 type Props = {
   config: GameConfig;
   onChange: (value: GameConfig) => void;
@@ -26,12 +27,19 @@ export default function HomeScreen({
   const selectedMode = modes.find((mode) => mode.id === config.mode)!;
   const [playType, setPlayType] = useState<PlayType>("local");
   const [mobileStep, setMobileStep] = useState(1);
+  const [categoryError, setCategoryError] = useState(false);
+  const hasCategories = config.categories.length > 0;
   const update = <K extends keyof GameConfig>(key: K, value: GameConfig[K]) =>
     onChange({ ...config, [key]: value });
   useEffect(() => {
     if (config.playerCount !== 1) onChange({ ...config, playerCount: 1 });
   }, [config, onChange]);
   const play = () => {
+    if (!hasCategories) {
+      setCategoryError(true);
+      setMobileStep(2);
+      return;
+    }
     startMusic();
     playEffect("start");
     playType === "local" ? onStart() : onOnline();
@@ -50,7 +58,14 @@ export default function HomeScreen({
         <button
           type="button"
           className="next-step"
-          onClick={() => setMobileStep(step + 1)}
+          disabled={step === 2 && !hasCategories}
+          onClick={() => {
+            if (step === 2 && !hasCategories) {
+              setCategoryError(true);
+              return;
+            }
+            setMobileStep(step + 1);
+          }}
         >
           {es ? "Continuar" : "Continue"}
           <Icon name="arrowRight" />
@@ -60,11 +75,11 @@ export default function HomeScreen({
   );
   const selectCategories = (categories: PlayableCardCategoryId[]) => {
     const pairCount = getSelectedPairCount(categories);
+    setCategoryError(categories.length === 0);
     onChange({ ...config, categories, pairCount });
   };
   const toggleCategory = (category: PlayableCardCategoryId) => {
     const selected = config.categories.includes(category);
-    if (selected && config.categories.length === 1) return;
     selectCategories(selected ? config.categories.filter((id) => id !== category) : [...config.categories, category]);
   };
   return (
@@ -180,17 +195,41 @@ export default function HomeScreen({
             <p>{es ? "Combina cualquier cantidad de categorías. El tablero se ajustará automáticamente." : "Combine any number of categories. The board adjusts automatically."}</p>
           </div>
           <div className="category-grid">
-            {CARD_CATEGORIES.map((category) => {
+            {CARD_CATEGORIES?.map((category) => {
               const isAll = category.id === "all";
               const active = isAll ? config.categories.length === PLAYABLE_CATEGORIES.length : config.categories.includes(category.id as PlayableCardCategoryId);
-              return <button key={category.id} type="button" className={active ? "is-selected" : ""} style={{ "--category-color": category.color } as CSSProperties} onClick={() => {
-                if (isAll) selectCategories([...ALL_CATEGORY_IDS]);
-                else toggleCategory(category.id as PlayableCardCategoryId);
-              }} aria-pressed={active}>
-                <i /><span><strong>{getCategoryLabel(category.id, language)}</strong><small>{category.count} {t("pairs")}</small></span><span className="category-check"><Icon name="check" /></span>
-              </button>;
+              return (
+                <button key={category.id} type="button" className={`${active ? "is-selected" : ""} category-${category.accent}`}
+                  style={{ "--category-color": category.color } as CSSProperties} onClick={() => {
+                    if (isAll) selectCategories(active ? [] : [...ALL_CATEGORY_IDS]);
+                    else toggleCategory(category.id as PlayableCardCategoryId);
+                  }} aria-pressed={active}>
+                  <span className="category-artwork-wrap">
+                    <CategoryArtwork category={category.id} />
+                    <span className="category-check"><Icon name="check" /></span>
+                  </span><span className="category-copy">
+                    <strong>
+                      {getCategoryLabel(category.id, language)}
+                    </strong>
+                    <small>{" "}{category.count} {t("pairs")}</small>
+                  </span>
+                </button>
+              );
             })}
           </div>
+          {!hasCategories &&
+            <div className={`category-validation ${categoryError ? "is-emphasized" : ""}`} role="alert">
+              <Icon name="categories" />
+              <span>
+                <strong>
+                  {es ? "Selecciona al menos una categoría" : "Select at least one category"}
+                </strong>
+                <small>
+                  {es ? "Necesitas una categoría para crear el tablero y continuar." : "A category is required to build the board and continue."}
+                </small>
+              </span>
+            </div>
+          }
           {nav(2)}
         </section>
         <section
@@ -367,6 +406,8 @@ export default function HomeScreen({
               className={"start-game-button"}
               type="button"
               onClick={play}
+              disabled={!hasCategories}
+              aria-disabled={!hasCategories}
             >
               <Icon name="play" />
 
