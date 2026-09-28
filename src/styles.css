@@ -3379,12 +3379,14 @@ svg {
   box-shadow: 0 8px 20px rgba(237, 22, 140, 0.25);
 }
 .deck-count {
+  position: absolute;
+  top: 10%;
+  left: calc(100% + -25px);
   color: #7c7b92;
   font-size: 0.82rem;
   font-weight: 700;
-  position: relative;
-  top: -20px;
-  right: 20px;
+  white-space: nowrap;
+  transform: translateY(-50%);
 }
 .deck-count span {
   color: #ed168c;
