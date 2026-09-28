@@ -44,6 +44,30 @@ export default function HomeScreen({
     playEffect("start");
     playType === "local" ? onStart() : onOnline();
   };
+  const playRandomGame = () => {
+    const shuffledCategories = [...ALL_CATEGORY_IDS].sort(() => Math.random() - 0.5);
+    const categoryCount = Math.floor(Math.random() * shuffledCategories.length) + 1;
+    const categories = shuffledCategories.slice(0, categoryCount);
+    const difficulties: BotDifficulty[] = ["easy", "medium", "hard"];
+    const randomConfig: GameConfig = {
+      ...config,
+      mode: modes[Math.floor(Math.random() * modes.length)].id,
+      pairCount: getSelectedPairCount(categories),
+      playerCount: 1,
+      onlinePlayerCount: [2, 3, 4][Math.floor(Math.random() * 3)],
+      botCount: Math.floor(Math.random() * 3) + 1,
+      botDifficulty: difficulties[Math.floor(Math.random() * difficulties.length)],
+      categories,
+    };
+
+    setCategoryError(false);
+    onChange(randomConfig);
+    startMusic();
+    playEffect("start");
+    window.setTimeout(() => {
+      playType === "local" ? onStart() : onOnline();
+    }, 0);
+  };
   const es = language === "es";
   const nav = (step: number) => (
     <div className="mobile-step-nav">
@@ -402,6 +426,15 @@ export default function HomeScreen({
             <div className="summary-stat category-summary"><small>{es ? "Categorías" : "Categories"}</small><strong>{getCategoriesLabel(config.categories, language)}</strong></div>
           </div>
           <div className="start-buttons">
+            {/* Don't delete but commnet for now */}
+            {/* <button
+              className="random-game-button"
+              type="button"
+              onClick={playRandomGame}
+            >
+              <Icon name="random" />
+              {es ? "Juego al azar" : "Random game"}
+            </button> */}
             <button
               className={"start-game-button"}
               type="button"

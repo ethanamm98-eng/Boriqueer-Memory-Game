@@ -6,6 +6,9 @@ import { finishTimedOutRoom, flipOnlineCard, leaveOnlineRoom, resolveOnlineTurn,
 import { getGameModes } from "../data/gameModes";
 import CardArtPreview from "./CardArtPreview";
 import ConfirmDialog from "./ConfirmDialog";
+
+const REMOTE_CARD_PREVIEW_DELAY_MS = 700;
+const REMOTE_PAIR_HOLD_MS = 3800;
 import { useLanguage } from "../context/LanguageContext";
 import Icon from "./Icon";
 import DeckZoomControls, { MOBILE_CARD_WIDTHS } from "./DeckZoomControls";
@@ -131,19 +134,23 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
 
     if (nextHighlights.length === 2) {
       // Preserve both faces locally after the server resolves the pair. The
-      // online turn can continue while spectators still get a clear view.
+      // hold includes the second-card expansion plus time back on the board.
       setRemotePairHold(nextHighlights);
       if (remotePairHoldTimerRef.current !== null) window.clearTimeout(remotePairHoldTimerRef.current);
-      remotePairHoldTimerRef.current = window.setTimeout(() => setRemotePairHold([]), 1000);
+      remotePairHoldTimerRef.current = window.setTimeout(() => setRemotePairHold([]), REMOTE_PAIR_HOLD_MS);
     } else {
       setRemotePairHold([]);
       if (remotePairHoldTimerRef.current !== null) window.clearTimeout(remotePairHoldTimerRef.current);
-      const previewTimer = window.setTimeout(() => {
-        setRemotePreviewContext(language === "es" ? `${playerName} reveló esta carta` : `${playerName} revealed this card`);
-        setArtPreview(`/cards-v2/card-${matchId}.webp`);
-      }, 700);
-      remotePreviewTimersRef.current.push(previewTimer);
     }
+
+    // Open every remote pick, including the second card. A fast second pick
+    // closes the first preview immediately, reveals the board flip, then opens
+    // the newly selected artwork after the same short observation delay.
+    const previewTimer = window.setTimeout(() => {
+      setRemotePreviewContext(language === "es" ? `${playerName} reveló esta carta` : `${playerName} revealed this card`);
+      setArtPreview(`/cards-v2/card-${matchId}.webp`);
+    }, REMOTE_CARD_PREVIEW_DELAY_MS);
+    remotePreviewTimersRef.current.push(previewTimer);
   }, [currentPlayer?.profile?.display_name, currentPlayer?.user_id, flippedPairKey, language, playEffect, room, t, user?.id]);
 
   useEffect(() => {
