@@ -117,7 +117,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     if (previous.length === 0 && remoteHighlightsRef.current.length > 0) {
       setRemoteHistory((history) => Array.from(new Set([...history, ...remoteHighlightsRef.current])).filter((index) => index !== latestIndex).slice(-6));
       if (remoteHistoryTimerRef.current !== null) window.clearTimeout(remoteHistoryTimerRef.current);
-      remoteHistoryTimerRef.current = window.setTimeout(() => setRemoteHistory([]), 10000);
+      remoteHistoryTimerRef.current = window.setTimeout(() => setRemoteHistory([]), 2000);
     }
     const nextHighlights = previous.length === 0 ? [latestIndex] : Array.from(new Set([...remoteHighlightsRef.current, latestIndex])).slice(-2);
     remoteHighlightsRef.current = nextHighlights;
@@ -126,7 +126,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     remoteHighlightTimerRef.current = window.setTimeout(() => {
       remoteHighlightsRef.current = [];
       setRemoteHighlights([]);
-    }, 10000);
+    }, 2000);
     playEffect("flip");
 
     if (nextHighlights.length === 2) {
@@ -192,7 +192,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     const canHint = Boolean(room && remainingPairs === 3 && isMyTurn && room.flipped_indices.length < 2);
     setShowEndgameHint(false);
     if (!canHint) return;
-    const timer = window.setTimeout(() => setShowEndgameHint(true), 6000);
+    const timer = window.setTimeout(() => setShowEndgameHint(true), 2000);
     return () => window.clearTimeout(timer);
   }, [flippedPairKey, isMyTurn, room?.matched_pair_ids.length, room?.pair_count]);
 
@@ -216,7 +216,15 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
     return (
       <main className="online-shell lobby-shell">
         <section className="lobby-wrap">
-          <header className="lobby-header"><button className="home-button" type="button" onClick={leave}><Icon name="arrowLeft" /></button><div><span className="hero-kicker">{t("privateRoom")}</span><h1>{t("waitingPlayers")}</h1></div><span className="live-pill"><i /> {t("online")}</span></header>
+          <header className="lobby-header">
+            <button className="home-button" type="button" onClick={leave}>
+              <Icon name="arrowLeft" />
+            </button>
+            <div>
+              <span className="hero-kicker">{t("privateRoom")}
+              </span>
+              <h1>{t("waitingPlayers")}</h1></div><span className="live-pill"><i /> {t("online")}</span>
+          </header>
           <section className="invite-code-panel"><small>{t("shareCode")}</small><strong>{room.code}</strong><button type="button" onClick={() => void navigator.clipboard.writeText(room.code)}>{t("copyCode")}</button></section>
           <InvitePlayers code={room.code} />
           <section className="lobby-panel">
@@ -325,11 +333,11 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
                 void perform(() => flipOnlineCard(room.id, index));
               }}
             >
-              {remotePickOrder > 0 &&
+              {/* {remotePickOrder > 0 &&
                 <span className="remote-pick-badge">
                   <Icon name="wifi" />{remotePickOrder}
                 </span>
-              }
+              } */}
               {isRecentRemotePick && <span className="remote-history-badge">
                 <Icon name="clock" />
               </span>}<span className="card-inner">

@@ -131,7 +131,7 @@ export default function HomeScreen({
           </div>
           <div className="hero-card-stack" aria-hidden="true">
             <div className="stack-card stack-card-back">
-              <img src="/cards-v2/back.webp" alt="" />
+              <img src="/cards-v2/back-puerto-rico.webp" alt="" />
             </div>
             <div className="stack-card stack-card-middle">
               <img src="/cards-v2/card-23.webp" alt="" />
