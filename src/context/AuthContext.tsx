@@ -133,7 +133,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!supabase) throw new Error("Supabase is not configured.");
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+      const { error: signOutError } = await supabase.auth.signOut({ scope: "global" });
+      if (signOutError) throw signOutError;
+      setSession(null);
+      setProfile(null);
       setRecoveryMode(false);
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.hash = "";
+      cleanUrl.searchParams.delete("code");
+      cleanUrl.searchParams.delete("token");
+      cleanUrl.searchParams.delete("token_hash");
+      cleanUrl.searchParams.delete("type");
+      window.history.replaceState({}, document.title, `${cleanUrl.pathname}${cleanUrl.search}`);
     },
     recordLocalGame: async (won) => {
       if (!supabase || !session?.user) return;

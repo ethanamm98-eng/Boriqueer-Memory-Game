@@ -1278,10 +1278,17 @@ h1 {
   height: 55px;
   margin: 0 auto 13px;
   border-radius: 18px;
+  overflow: hidden;
   color: #fff;
   background: linear-gradient(145deg, #ed168c, #ad2aa5);
   box-shadow: 0 12px 28px rgba(237, 22, 140, 0.25);
   font-size: 1.3rem;
+}
+.auth-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .auth-kicker {
   color: #ed168c;

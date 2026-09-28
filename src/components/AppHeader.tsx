@@ -35,10 +35,10 @@ export default function AppHeader({
           onClick={onHome}
           aria-label={t("returnHome")}
         >
-          <img src="/cards-v2/card-11.webp" alt="" />
+          <img src="/brand/boricuir-logo.png" alt="" />
           <span>
             <strong>{t("brand")}</strong>
-            <small>Sexkúl</small>
+            <small>By Sexkúl</small>
           </span>
         </button>
         <div className="app-header-actions">

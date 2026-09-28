@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 768 768" role="img" aria-labelledby="title desc">
+<title id="title">Boricuir logo with red hibiscus flower</title>
+<desc id="desc">A blue Puerto Rican garita watchtower before rainbow arcs, beside a broad five-petal red hibiscus with a projecting stamen, in a magenta-to-violet rounded square.</desc>
+<defs>
+  <linearGradient id="frame" x1="0" y1="0" x2="768" y2="768" gradientUnits="userSpaceOnUse"><stop stop-color="#f01491"/><stop offset=".55" stop-color="#cc249f"/><stop offset="1" stop-color="#603cbb"/></linearGradient>
+  <linearGradient id="redPetal" x1="535" y1="104" x2="665" y2="295" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6265"/><stop offset=".52" stop-color="#e52b3c"/><stop offset="1" stop-color="#b9122d"/></linearGradient>
+  <linearGradient id="blueDome" x1="275" y1="159" x2="468" y2="275" gradientUnits="userSpaceOnUse"><stop stop-color="#267fc0"/><stop offset="1" stop-color="#176399"/></linearGradient>
+  <linearGradient id="rainbowRed" x1="85" y1="476" x2="578" y2="152" gradientUnits="userSpaceOnUse"><stop stop-color="#ef3b50"/><stop offset="1" stop-color="#e63b56"/></linearGradient>
+  <linearGradient id="rainbowYellow" x1="115" y1="656" x2="551" y2="289" gradientUnits="userSpaceOnUse"><stop stop-color="#ffcf46"/><stop offset="1" stop-color="#ffe171"/></linearGradient>
+  <linearGradient id="rainbowGreen" x1="157" y1="665" x2="578" y2="347" gradientUnits="userSpaceOnUse"><stop stop-color="#4a9b5c"/><stop offset="1" stop-color="#50aa68"/></linearGradient>
+  <linearGradient id="rainbowBlue" x1="217" y1="665" x2="581" y2="431" gradientUnits="userSpaceOnUse"><stop stop-color="#3980ca"/><stop offset="1" stop-color="#4e90df"/></linearGradient>
+  <linearGradient id="rainbowViolet" x1="276" y1="663" x2="570" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#9863bd"/><stop offset="1" stop-color="#a368c5"/></linearGradient>
+  <clipPath id="interior"><rect x="48" y="36" width="672" height="696" rx="171"/></clipPath>
+</defs>
+<rect width="768" height="768" rx="174" fill="url(#frame)"/>
+<rect x="48" y="36" width="672" height="696" rx="171" fill="#fffbfe"/>
+<g clip-path="url(#interior)" fill="none">
+  <path d="M78 579 C89 374 264 193 519 171 C559 166 589 171 610 181" stroke="url(#rainbowRed)" stroke-width="54"/>
+  <path d="M104 638 C110 414 295 251 559 249 L610 249" stroke="#ff8330" stroke-width="53"/>
+  <path d="M150 666 C151 459 323 301 559 300 L611 300" stroke="url(#rainbowYellow)" stroke-width="51"/>
+  <path d="M204 687 C205 503 345 359 562 359 L611 359" stroke="url(#rainbowGreen)" stroke-width="52"/>
+  <path d="M260 698 C260 546 373 426 565 426 L611 426" stroke="url(#rainbowBlue)" stroke-width="53"/>
+  <path d="M313 706 C313 583 397 492 564 492 L611 492" stroke="url(#rainbowViolet)" stroke-width="52"/>
+</g>
+<!-- Garita: finial, dome, cornice, straight shaft, slit, ledge and pointed corbel. -->
+<g stroke="#134c80" stroke-linejoin="round">
+  <circle cx="384" cy="118" r="18" fill="#2078b4" stroke-width="14"/>
+  <path d="M356 166 C356 139 369 137 384 137 C399 137 412 139 412 166" fill="#17629b" stroke-width="13"/>
+  <path d="M289 259 C289 209 331 166 384 166 C437 166 479 209 479 259 Z" fill="url(#blueDome)" stroke-width="15"/>
+  <path d="M294 259 H474 V531 H294 Z" fill="#fffefe" stroke-width="14"/>
+  <path d="M424 266 H470 V528 H424 Z" fill="#dfe9f2" stroke="none"/>
+  <path d="M278 261 H490 V282 Q490 289 483 289 H285 Q278 289 278 282 Z" fill="#ee3047" stroke-width="14"/>
+  <path d="M384 363 V439" stroke="#153756" stroke-width="19" stroke-linecap="round"/>
+  <path d="M282 531 H486 V562 H282 Z" fill="#fffefe" stroke-width="14"/>
+  <path d="M301 562 H467 L384 673 Z" fill="#e51d39" stroke-width="14"/>
+  <path d="M410 568 H458 L384 664 Z" fill="#c81932" stroke="none"/>
+</g>
+<!-- Broad five-petal hibiscus inspired by the supplied line drawing. -->
+<g stroke="#9e173a" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Rear upper petal: high, broad, slightly folded rim. -->
+  <path d="M587 204 C568 187 552 158 555 140 C558 118 574 106 594 105 C615 103 631 114 638 132 C642 145 635 160 624 174 C610 187 599 198 587 204 Z" fill="url(#redPetal)"/>
+  <!-- Left petal with the broad sideways silhouette and rolled outer edge. -->
+  <path d="M584 204 C564 192 541 168 521 166 C503 163 490 181 490 201 C489 225 502 238 521 239 C542 240 565 226 584 204 Z" fill="#ed344a"/>
+  <!-- Right petal flares outward, ending in a soft hibiscus lobe. -->
+  <path d="M594 207 C611 183 629 159 652 155 C673 151 694 172 697 193 C700 213 690 233 675 235 C652 238 618 217 594 207 Z" fill="#d82641"/>
+  <!-- Lower-left and lower-right petals sweep down from the shared throat. -->
+  <path d="M585 208 C570 228 547 237 528 249 C510 262 507 282 521 291 C538 304 559 293 575 276 C587 262 589 232 585 208 Z" fill="#e92c43"/>
+  <path d="M591 209 C610 225 643 238 656 258 C668 277 663 293 646 300 C625 307 604 290 596 271 C587 252 586 225 591 209 Z" fill="#dc263f"/>
+</g>
+<!-- Fine petal creases preserve the reference flower's radial, hand-drawn character. -->
+<g fill="none" stroke="#a71c3c" stroke-width="4" stroke-linecap="round">
+  <path d="M584 196 C575 178 570 157 573 143"/>
+  <path d="M585 194 C587 167 590 147 594 130"/>
+  <path d="M581 203 C559 194 538 187 517 186"/>
+  <path d="M575 207 C549 208 529 213 509 210"/>
+  <path d="M595 204 C619 190 646 184 672 185"/>
+  <path d="M599 211 C624 212 652 218 678 220"/>
+  <path d="M581 216 C562 236 545 254 537 275"/>
+  <path d="M587 221 C582 248 567 271 555 281"/>
+  <path d="M596 217 C617 235 635 253 641 279"/>
+  <path d="M593 224 C600 254 609 277 620 288"/>
+</g>
+<!-- The projecting staminal column and its five pollen-tipped lobes. -->
+<path d="M588 207 C600 183 618 159 641 141 C651 134 658 126 663 119" fill="none" stroke="#9e173a" stroke-width="7" stroke-linecap="round"/>
+<path d="M588 207 C600 183 618 159 641 141 C651 134 658 126 663 119" fill="none" stroke="#ffb864" stroke-width="3" stroke-linecap="round"/>
+<g fill="#ffcf50" stroke="#9e173a" stroke-width="5" stroke-linejoin="round">
+  <path d="M651 137 C642 137 639 129 644 123 C647 119 653 120 656 122 C653 114 657 108 664 108 C672 109 673 115 672 121 C679 117 686 122 685 129 C684 137 676 139 672 136 C675 144 670 149 663 146 C657 144 656 140 659 136 Z"/>
+  <circle cx="632" cy="150" r="6"/>
+  <circle cx="644" cy="143" r="5"/>
+</g>
+</svg>
