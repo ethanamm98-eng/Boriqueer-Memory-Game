@@ -48,7 +48,7 @@ npx supabase functions deploy send-room-invite
 
 The branded confirmation template is included at `supabase/templates/confirm-signup.html`. Paste its complete contents into **Authentication > Email Templates > Confirm signup** and use `Confirm your Boricuir Memory account` as the subject.
 
-The branded recovery template is included at `supabase/templates/reset-password.html`. Paste it into **Authentication > Email Templates > Reset password** and use `Reset your Boricuir Memory password` as the subject. Both templates load the public game logo from `https://sexkul.com/brand/boricuir-logo.png`; deploy the public assets before testing email delivery.
+The branded recovery template is included at `supabase/templates/reset-password.html`. Paste it into **Authentication > Email Templates > Reset password** and use `Reset your Boricuir Memory password` as the subject. Both templates load the public game logo from `https://boricuir.sexkul.com/brand/boricuir-logo.png`; deploy the public assets before testing email delivery.
 
 For local Edge Function testing, create `supabase/functions/.env` (it is ignored by git) with the same three values, then run:
 
