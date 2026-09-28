@@ -2074,6 +2074,16 @@ h1 {
 .online-shell > .online-wrap {
   padding-top: 10px;
 }
+.online-shell > .lobby-wrap {
+  padding-top: 10px;
+}
+.online-choice-grid.join-only {
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
+}
+.online-choice-grid.join-only .join-card {
+  width: 100%;
+}
 
 .lobby-actions .ready-button {
   border-color: transparent;
@@ -2111,6 +2121,9 @@ h1 {
 
 @media (max-width: 760px) {
   .online-shell > .online-wrap {
+    padding-top: 4px;
+  }
+  .online-shell > .lobby-wrap {
     padding-top: 4px;
   }
 
