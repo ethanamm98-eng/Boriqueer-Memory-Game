@@ -242,7 +242,11 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
                 : <div className="lobby-player empty-player" key={index}><span><Icon name="plus" /></span><p>{t("waitingForPlayer")} {index + 1}</p></div>;
             })}</div>
             <div className="lobby-actions">
-              {me && user?.id !== room.host_id && <button type="button" className="online-secondary" onClick={() => perform(() => setPlayerReady(room.id, !me.is_ready))}>{me.is_ready ? t("notReady") : t("imReady")}</button>}
+              {me && user?.id !== room.host_id &&
+                <button
+                  type="button"
+                  className={`online-secondary ${me.is_ready ? "ready-button" : ""}`}
+                  onClick={() => perform(() => setPlayerReady(room.id, !me.is_ready))}>{me.is_ready ? t("notReady") : t("imReady")}</button>}
               {user?.id === room.host_id && <button type="button" className="online-primary" disabled={!canStart} data-sound="custom" onClick={() => perform(async () => { playEffect("start"); await startOnlineRoom(room.id); })}>{players.length < 2 ? t("waitingAnother") : !players.every((player) => player.is_ready) ? t("waitingReady") : t("startGame")}</button>}
             </div>
           </section>
@@ -259,7 +263,7 @@ export default function OnlineGameScreen({ roomId, onLeave }: OnlineGameScreenPr
   return (
     <main className="game-shell online-game-shell" onPointerDown={stopCelebration}>
       <section className="game-wrap">
-        <header className="game-header enhanced-game-header"><div className="game-title-row"><button className="home-button" type="button" onClick={() => setConfirmQuit(true)}><Icon name="arrowLeft" /></button><div><div className="eyebrow"><Icon name="wifi" /> {t("online").toUpperCase()} · {t("roomCode").toUpperCase()} {room.code}</div><h1>Boricuir Memory</h1></div></div><div className="game-actions"><span className={`active-mode-pill accent-${mode?.accent || "pink"}`}>{mode && <Icon name={mode.icon} />} {mode?.name}</span><span className="category-pill">{getCategoriesLabel(room.categories?.length ? room.categories : ALL_CATEGORY_IDS, language)}</span></div></header>
+        <header className="game-header enhanced-game-header"><div className="game-title-row"><button className="home-button" type="button" onClick={() => setConfirmQuit(true)}><Icon name="arrowLeft" /></button><div><div className={`eyebrow game-mode-eyebrow accent-${mode?.accent || "pink"}`}>{mode && <Icon name={mode.icon} />} {mode?.shortName} {t("mode")} · {t("roomCode").toUpperCase()} {room.code}</div><h1>Boricuir Memory</h1></div></div><div className="game-actions"><span className={`active-mode-pill accent-${mode?.accent || "pink"}`}>{mode && <Icon name={mode.icon} />} {mode?.name}</span><span className="category-pill">{getCategoriesLabel(room.categories?.length ? room.categories : ALL_CATEGORY_IDS, language)}</span></div></header>
         <div className="score-strip enhanced-score-strip">
           <div className="score-item">
             <span>{t("matches")}</span>

@@ -470,7 +470,7 @@ export default function GameScreen({ config, onHome }: GameScreenProps) {
               <Icon name="arrowLeft" />
             </button>
             <div>
-              <div className="eyebrow">
+              <div className={`eyebrow game-mode-eyebrow accent-${mode.accent}`}>
                 <Icon name={mode.icon} /> {mode.shortName} {t("mode")}
               </div>
               <h1>Boricuir Memory</h1>
