@@ -28,7 +28,7 @@ const messages: Record<Language, Record<string, string>> = {
     continueIn: "Continue",
     creatorExperience: "A game by Sexkúl",
     preparingGame: "Preparing all 80 illustrated pairs…",
-    heroKicker: "Puerto Rican cuir culture, one pair at a time",
+    heroKicker: "Puerto Rican queer culture, one pair at a time",
     heroTitle1: "Remember.",
     heroTitle2: "Match. Celebrate.",
     heroText:
